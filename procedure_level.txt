@@ -1,0 +1,98 @@
+i have this sql table:CREATE TABLE student_tbl (
+  stu_ID int(11) NOT NULL,
+  Firstname varchar(50) NOT NULL,
+  Middlename varchar(50) NOT NULL,
+  Surname varchar(50) NOT NULL,
+  Reg_no varchar(50) NOT NULL,
+  Password varchar(20) NOT NULL DEFAULT 'password',
+  Gender varchar(6) NOT NULL,
+  DOB date NOT NULL,
+  Phone varchar(16) NOT NULL,
+  Email varchar(100) NOT NULL,
+  Address text NOT NULL,
+  State varchar(20) NOT NULL,
+  LGA varchar(20) NOT NULL,
+  Faculty varchar(50) NOT NULL,
+  Course_of_study varchar(100) NOT NULL,
+  Session varchar(20) NOT NULL,
+  Semester varchar(20) NOT NULL,
+  Level varchar(20) NOT NULL,
+  DateRegister date NOT NULL DEFAULT current_timestamp(),
+  TimeRegister time NOT NULL DEFAULT current_timestamp(),
+  Status varchar(20) NOT NULL DEFAULT 'Active',
+  JambNo varchar(14) NOT NULL,
+  NIN int(16) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+then i also have this sql table: CREATE TABLE level_tbl (
+  levelID int(11) NOT NULL,
+  Level varchar(9) NOT NULL,
+  Status varchar(10) NOT NULL DEFAULT 'Active'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table level_tbl
+--
+
+INSERT INTO level_tbl (levelID, Level, Status) VALUES
+(1, 'NCE I', 'Active'),
+(2, 'NCE II', 'Active'),
+(3, 'NCE III', 'Active');
+what i want is when a student from NCE I done first Semester and second semester it would change his level to NCE II in student_tbl also with NCE II to NCE III then NCE III to Gradute i'm using php and mysql. can CONSTRAINT or PROCEDURE solve my problem or any suggestion sql function that would solve my problem
+
+
+
+
+
+
+
+
+
+
+DELIMITER $$
+
+CREATE PROCEDURE PromoteStudent(IN stu_ID INT)
+BEGIN
+    DECLARE currentLevel VARCHAR(20);
+    DECLARE currentSemester VARCHAR(20);
+
+    -- Get the current level and semester of the student
+    SELECT Level, Semester INTO currentLevel, currentSemester
+    FROM student_tbl
+    WHERE stu_ID = stu_ID;
+
+    -- Update the level based on the current level and semester
+    IF currentLevel = 'NCE I' AND currentSemester = 'Second Semester' THEN
+        UPDATE student_tbl
+        SET Level = 'NCE II', Semester = 'First Semester'
+        WHERE stu_ID = stu_ID;
+    ELSEIF currentLevel = 'NCE II' AND currentSemester = 'Second Semester' THEN
+        UPDATE student_tbl
+        SET Level = 'NCE III', Semester = 'First Semester'
+        WHERE stu_ID = stu_ID;
+    ELSEIF currentLevel = 'NCE III' AND currentSemester = 'Second Semester' THEN
+        UPDATE student_tbl
+        SET Level = 'Graduate', Semester = ''
+        WHERE stu_ID = stu_ID;
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE TRIGGER AfterSemesterUpdate
+AFTER UPDATE ON student_tbl
+FOR EACH ROW
+BEGIN
+    -- Call the stored procedure to promote the student
+    IF NEW.Semester <> OLD.Semester THEN
+        CALL PromoteStudent(NEW.stu_ID);
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+
+https://chatgpt.com/c/51be483e-c3f4-40a1-b624-ba857030a5dc

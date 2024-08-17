@@ -1,0 +1,7 @@
+@echo off
+rem Copy PHP project files
+xcopy /s /e "C:\Windows\System32\cmd.exe" "destination_path"
+
+rem Start PHP server
+cd "destination_path"
+start php -S localhost:8000
